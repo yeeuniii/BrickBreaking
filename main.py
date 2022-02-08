@@ -6,10 +6,13 @@ os.chdir("C:\\Users\\박예은\\PycharmProjects\\pythonProject\\BrickBreaking\\i
 
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, color, location, boolean):
+    def __init__(self, chance, location, boolean):
         pygame.sprite.Sprite.__init__(self)
         image = pygame.Surface([90, 30])   # Brick size
-        image.fill(color)
+        color = {3: "indianred4", 2: "indianred3", 1: "darksalmon"}
+        self.chance = chance
+        self.color = color[self.chance]
+        image.fill(pygame.colordict.THECOLORS[self.color])
         self.image = image.convert()
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
@@ -32,16 +35,20 @@ class Ball(pygame.sprite.Sprite):
             self.speed[1] = -self.speed[1]
 
 
-def animate(group, ball=None): # 굳이 있어야되는 함수인가?
+def animate(group):
     for i in group:
         screen.blit(i.image, i.rect)
-    if pygame.sprite.spritecollide(ball, group, True):
-        my_ball.speed[1] = -my_ball.speed[1]
 
-
-
-def check(ball, group):
-    pass
+def check(group, ball):
+    new_group = pygame.sprite.Group()
+    for i in group:
+        if pygame.sprite.spritecollide(ball, pygame.sprite.Group(i), True):
+            ball.speed[1] = -ball.speed[1]
+            rect = i.rect.left, i.rect.top
+            chance = i.chance - 1
+            new_brick = Brick(chance, rect, True)
+            new_group.add(new_brick)
+    animate(new_group)
 
 
 pygame.init()
@@ -59,14 +66,9 @@ main = Ball("dumbo_image.png", [15, 0], [screen.get_width()/2, screen.get_height
 brick_group = pygame.sprite.Group()   # 벽돌 그룹 생성
 for row in range(3):                    # 벽돌 객체 생성 후 그룹에 넣음
     for col in range(7):
-        col_brick = pygame.colordict.THECOLORS["firebrick4"]
-        brick = Brick(col_brick, [35+col*140, 30+row*80], random.choice([True, False]))
+        brick = Brick(3, [35+col*140, 30+row*80], random.choice([True, False]))
         if brick.boolean:
             brick_group.add(brick)
-#        ball_speed = [random.randint(8, 10), random.randint(5, 10)]
-#        ball_location = [random.randint(0, 500), random.randint(0, 300)]
-#        ball = Ball(image_file, ball_speed, ball_location)
-#        group.add(ball)
 
 clock = pygame.time.Clock()
 delay = 100
@@ -84,11 +86,15 @@ while True:
                 main.rect.left = main.rect.left - main.speed[0]
             elif event.key == pygame.K_RIGHT:
                 main.rect.left = main.rect.left + main.speed[0]
+#            elif event.key == pygame.K_SPACE: # 점프 생각보다 생각할게 많네,,?
+#                main.rect.
+
     my_ball.move()
     if pygame.sprite.spritecollide(main, pygame.sprite.Group(my_ball), False):
         my_ball.speed[1] = -my_ball.speed[1]
     screen.blit(main.image, main.rect)
     screen.blit(my_ball.image, my_ball.rect)
-    animate(brick_group, my_ball)
+    animate(brick_group)
+    check(brick_group, my_ball)
     pygame.display.flip()
 
