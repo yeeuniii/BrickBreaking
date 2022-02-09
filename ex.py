@@ -4,10 +4,8 @@ import random
 import os
 os.chdir("C:\\Users\\박예은\\PycharmProjects\\pythonProject\\BrickBreaking\\image")
 
-"""
-font1 = pygame.font.Font(None, 70)
-font1.render("GAME OVER", True, pygame.colordict.THECOLORS["gray"])
-"""
+for i in pygame.font.get_fonts():
+    print(i)
 
 class Brick(pygame.sprite.Sprite):
     def __init__(self, chance, location, boolean):
