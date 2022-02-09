@@ -4,6 +4,7 @@ import random
 import os
 os.chdir("C:\\Users\\박예은\\AppData\\Local\\Programs\\Python\\Python37\\One_Big_Archive")
 
+
 class Ball(pygame.sprite.Sprite):
     def __init__(self, image_file, speed, location):
         pygame.sprite.Sprite.__init__(self)

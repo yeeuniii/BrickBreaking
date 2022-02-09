@@ -51,6 +51,7 @@ def check(group, ball):
     animate(new_group)
 
 
+
 pygame.init()
 screen = pygame.display.set_mode([1000, 630])
 screen.fill([255, 255, 255])
@@ -74,6 +75,17 @@ clock = pygame.time.Clock()
 delay = 100
 interval = 50
 pygame.key.set_repeat(delay, interval)
+
+new_group = pygame.sprite.Group()
+for i in brick_group:
+    if pygame.sprite.spritecollide(my_ball, pygame.sprite.Group(i), True):
+        my_ball.speed[1] = -my_ball.speed[1]
+        rect = i.rect.left, i.rect.top
+        chance = i.chance - 1
+        new_brick = Brick(chance, rect, True)
+        new_group.add(new_brick)
+animate(new_group)
+
 
 while True:
     clock.tick(20)
