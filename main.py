@@ -36,20 +36,20 @@ class Ball(pygame.sprite.Sprite):
 
 
 def animate(group):
+#    copygroup = group[:]
     for i in group:
         screen.blit(i.image, i.rect)
 
+
 def check(group, ball):
-    new_group = pygame.sprite.Group()
     for i in group:
         if pygame.sprite.spritecollide(ball, pygame.sprite.Group(i), True):
             ball.speed[1] = -ball.speed[1]
             rect = i.rect.left, i.rect.top
-            chance = i.chance - 1
-            new_brick = Brick(chance, rect, True)
-            new_group.add(new_brick)
-    animate(new_group)
-
+            chance = i.chance
+            if chance > 1:
+                new_brick = Brick(chance-1, rect, True)
+                brick_group.add(new_brick)
 
 
 pygame.init()
@@ -67,25 +67,14 @@ main = Ball("dumbo_image.png", [15, 0], [screen.get_width()/2, screen.get_height
 brick_group = pygame.sprite.Group()   # 벽돌 그룹 생성
 for row in range(3):                    # 벽돌 객체 생성 후 그룹에 넣음
     for col in range(7):
-        brick = Brick(3, [35+col*140, 30+row*80], random.choice([True, False]))
+        brick = Brick(random.choice([1, 2, 3]), [35+col*140, 30+row*80], random.choice([True, False]))
         if brick.boolean:
             brick_group.add(brick)
 
 clock = pygame.time.Clock()
 delay = 100
 interval = 50
-pygame.key.set_repeat(delay, interval)
-
-new_group = pygame.sprite.Group()
-for i in brick_group:
-    if pygame.sprite.spritecollide(my_ball, pygame.sprite.Group(i), True):
-        my_ball.speed[1] = -my_ball.speed[1]
-        rect = i.rect.left, i.rect.top
-        chance = i.chance - 1
-        new_brick = Brick(chance, rect, True)
-        new_group.add(new_brick)
-animate(new_group)
-
+pygame.key.set_repeat(delay, interval)  # 연속 키
 
 while True:
     clock.tick(20)
