@@ -19,7 +19,7 @@ class Brick(pygame.sprite.Sprite):
         self.boolean = boolean
 
 
-class Ball(pygame.sprite.Sprite):
+class Ball(pygame.sprite.Sprite):   # Marker
     def __init__(self, image_file, speed, location):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(image_file)
@@ -34,9 +34,16 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.top <= 0:
             self.speed[1] = -self.speed[1]
 
+    def jump(self):
+        self.rect.top = self.rect.top - self.speed[1]
+        screen.blit(self.image, self.rect)
+
+    def down(self):
+        self.rect.top = self.rect.top + self.speed[1]
+        screen.blit(self.image, self.rect)
+
 
 def animate(group):
-#    copygroup = group[:]
     for i in group:
         screen.blit(i.image, i.rect)
 
@@ -55,26 +62,37 @@ def check(group, ball):
 pygame.init()
 screen = pygame.display.set_mode([1000, 630])
 screen.fill([255, 255, 255])
+
 ball_speed = [random.randint(8, 10), random.randint(5, 10)]
 my_ball = Ball("ball.png", ball_speed, screen.get_rect().center)   # ball 객체 생성
 # main_image = pygame.image.load("dumbo_image.png")
 # main = Ball("dumbo_image.png", None,
 # [screen.get_width()/2, screen.get_height()-main_image.get_height()])
 # 우선 이미지의 높이를 안다는 전제하에. 근데 모른다면? 어떻게 할지 더 생각해보기
-main = Ball("dumbo_image.png", [15, 0], [screen.get_width()/2, screen.get_height()-130])    # main 객체 생성
+main = Ball("dumbo_image.png", [15, 30], [screen.get_width()/2, screen.get_height()-130])    # main 객체 생성
 
 
-brick_group = pygame.sprite.Group()   # 벽돌 그룹 생성
-for row in range(3):                    # 벽돌 객체 생성 후 그룹에 넣음
-    for col in range(7):
-        brick = Brick(random.choice([1, 2, 3]), [35+col*140, 30+row*80], random.choice([True, False]))
-        if brick.boolean:
-            brick_group.add(brick)
+def makebricks():
+    groups = pygame.sprite.Group()     # 벽돌 그룹 생성
+    TF = []
+    for row in range(3):                    # 벽돌 객체 생성 후 그룹에 넣음
+        for col in range(7):
+            brick_TF = random.choice([True, False])
+            TF.append(brick_TF)
+            if len(TF) >= 3:
+                brick_TF = False
+            brick = Brick(random.choice([1, 2, 3]), [35+col*140, 30+row*80], brick_TF)
+            if brick.boolean:
+                groups.add(brick)
+    return groups
 
+
+brick_group = makebricks()
 clock = pygame.time.Clock()
 delay = 100
 interval = 50
 pygame.key.set_repeat(delay, interval)  # 연속 키
+
 
 while True:
     clock.tick(20)
@@ -87,15 +105,22 @@ while True:
                 main.rect.left = main.rect.left - main.speed[0]
             elif event.key == pygame.K_RIGHT:
                 main.rect.left = main.rect.left + main.speed[0]
-#            elif event.key == pygame.K_SPACE: # 점프 생각보다 생각할게 많네,,?
-#                main.rect.
+            elif event.key == pygame.K_SPACE:
+                main.jump()
+                main.down()
+
 
     my_ball.move()
     if pygame.sprite.spritecollide(main, pygame.sprite.Group(my_ball), False):
         my_ball.speed[1] = -my_ball.speed[1]
+#        if my_ball.rect.right == main.rect.left or my_ball.rect.left == main.rect.right:
+#            my_ball.speed[0] = -my_ball.speed[0]
     screen.blit(main.image, main.rect)
     screen.blit(my_ball.image, my_ball.rect)
     animate(brick_group)
     check(brick_group, my_ball)
+    if len(brick_group) == 0:
+        pygame.time.delay(100)
+        brick_group = makebricks()
     pygame.display.flip()
 
