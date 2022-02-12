@@ -22,9 +22,9 @@ class Ball(pygame.sprite.Sprite):
 
 
 def animate(group):
-    for ball in group:
-        ball.move()
-        screen.blit(ball.image, ball.rect)
+    for elt in group:
+        elt.move()
+        screen.blit(elt.image, elt.rect)
 
 
 pygame.init()
