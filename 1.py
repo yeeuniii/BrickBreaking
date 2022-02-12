@@ -30,13 +30,13 @@ def animate(group):
 pygame.init()
 screen = pygame.display.set_mode([1000, 630])
 screen.fill([255, 255, 255])
-image_file = "beach_ball.png"
+image = "beach_ball.png"
 group = pygame.sprite.Group()
-control = Ball(image_file, None, screen.get_rect().center)
+control = Ball(image, None, screen.get_rect().center)
 for i in range(3):
     ball_speed = [random.randint(8, 10), random.randint(5, 10)]
     ball_location = [random.randint(0, 500), random.randint(0, 300)]
-    ball = Ball(image_file, ball_speed, ball_location)
+    ball = Ball(image, ball_speed, ball_location)
     group.add(ball)
 clock = pygame.time.Clock()
 
@@ -49,6 +49,7 @@ while True:
         elif event.type == pygame.MOUSEMOTION:
             control.rect.center = pygame.mouse.get_pos()
             pygame.sprite.spritecollide(control, group, True)
+    pygame.sprite.spritecollide(control, group, True)
     screen.blit(control.image, control.rect)
     animate(group)
     pygame.display.flip()

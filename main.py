@@ -3,7 +3,7 @@ import sys
 import random
 import os
 os.chdir(".\\image")
-# 상대참조와 절대참조
+# 상대경로와 절대경로
 # os.chdir("C:\\Users\\박예은\\PycharmProjects\\pythonProject\\BrickBreaking\\image")
 
 

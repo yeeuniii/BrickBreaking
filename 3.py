@@ -36,7 +36,6 @@ class Ball(pygame.sprite.Sprite):
 
 
 def animate(group):
-#    copygroup = group[:]
     for i in group:
         screen.blit(i.image, i.rect)
 
