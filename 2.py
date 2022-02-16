@@ -52,30 +52,42 @@ class Dumbo(pygame.sprite.Sprite):
         if self.rect.right >= screen.get_width():
             self.rect.right = screen.get_width()
 
+    def move_left(self, key_type, screen):
+        if key_type == pygame.K_LEFT:
+            self.move(screen, "left")
 
-def init(ball_speed, ball_location, dumbo_location):
+    def move_right(self, key_type, screen):
+        if key_type == pygame.K_RIGHT:
+            self.move(screen, "right")
+
+
+def init():
     pygame.init()
     pygame.key.set_repeat(100, 50)
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode([1000, 630])
-    screen.fill([255, 255, 255])
+
+
+def make_ball(ball_speed, ball_location):
     ball_image = pygame.image.load("ball.png")
-    ball = Ball(ball_image, ball_speed, ball_location)
+    return Ball(ball_image, ball_speed, ball_location)
+
+
+def make_dumbo(dumbo_location):
     dumbo_image = pygame.image.load("dumbo_image.png")
     dumbo_speed = [15, 0]
-    dumbo = Dumbo(dumbo_image, dumbo_speed, dumbo_location)
+    return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
+
+
+def make_bricks():
     bricks = pygame.sprite.Group()
     color_dic = {3: "indianred4", 2: "indianred3", 1: "darksalmon"}
     surface = pygame.Surface([90, 30])
     for row in range(3):
         for col in range(7):
-            brick = Brick(THECOLORS[color_dic[3]], surface, [35+col*140, 30+row*80], random.choice([True, False]))
+            brick = Brick(THECOLORS[color_dic[3]], surface, [35 + col * 140, 30 + row * 80],
+                          random.choice([True, False]))
             if brick.displayed:
                 bricks.add(brick)
-
-    my_list = [screen, ball, dumbo, bricks, clock]
-
-    return my_list
+    return bricks
 
 
 def brick_blit(screen, group):
@@ -83,44 +95,52 @@ def brick_blit(screen, group):
         screen.blit(elt.image, elt.rect)
 
 
+def check2(target1, target2, displayed, ball):
+    if pygame.sprite.spritecollide(target1, target2, displayed):
+        ball.speed[1] = -ball.speed[1]
+
+
 def check(group, ball, dumbo):
-    if pygame.sprite.spritecollide(ball, group, True):
-        ball.speed[1] = -ball.speed[1]
-    if pygame.sprite.spritecollide(dumbo, pygame.sprite.Group(ball), False):
-        ball.speed[1] = -ball.speed[1]
+    check2(ball, group, True, ball)
+    check2(dumbo, pygame.sprite.Group(ball), False, ball)
 
 
-def event(screen, dumbo):
-    for evt in pygame.event.get():
-        if evt.type == pygame.QUIT:
-            sys.exit()
-        elif evt.type == pygame.KEYDOWN:
-            if evt.key == pygame.K_LEFT:
-                dumbo.move(screen, "left")
-            elif evt.key == pygame.K_RIGHT:
-                dumbo.move(screen, "right")
+def terminate(event):
+    if event.type == pygame.QUIT:
+        sys.exit()
+
+
+def press_key_event(event, dumbo, screen):
+    if event.type == pygame.KEYDOWN:
+        dumbo.move_left(event.key, screen)
+        dumbo.move_right(event.key, screen)
+
+
+def do_event(screen, dumbo):
+    for event in pygame.event.get():
+        terminate(event)
+        press_key_event(event, dumbo, screen)
 
 
 def main():
-    global game_list
-    screen = game_list[0]
-    ball = game_list[1]
-    dumbo = game_list[2]
-    bricks = game_list[3]
-    clock = game_list[4]
-    clock.tick(30)
-    screen.fill([255, 255, 255])
+    init()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode([1000, 630])
+    ball = make_ball([10, 10], [500, 320])
+    dumbo = make_dumbo([500, 510])
+    bricks = make_bricks()
+    while True:
+        screen.fill([255, 255, 255])
+        clock.tick(30)
 
-    event(screen, dumbo)
+        do_event(screen, dumbo)
 
-    ball.move(screen)
-    check(bricks, ball, dumbo)
-    screen.blit(ball.image, ball.rect)
-    screen.blit(dumbo.image, dumbo.rect)
-    brick_blit(screen, bricks)
-    pygame.display.flip()
+        ball.move(screen)
+        check(bricks, ball, dumbo)
+        screen.blit(ball.image, ball.rect)
+        screen.blit(dumbo.image, dumbo.rect)
+        brick_blit(screen, bricks)
+        pygame.display.flip()
 
 
-game_list = init([10, 10], [500, 320], [500, 510])
-while True:
-    main()
+main()

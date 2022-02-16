@@ -7,14 +7,20 @@ os.chdir(".\\image")
 
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, color, surface, location, displayed):
+    def __init__(self, color_num, color, surface, location, displayed, clash):
         pygame.sprite.Sprite.__init__(self)
-        self.color = color
+        self.num = color_num
+        self.color = THECOLORS[color]
         self.image = surface.convert()
-        self.image.fill(color)
+        self.image.fill(self.color)
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
         self.displayed = displayed
+        self.clash = clash
+
+    def change_col(self):
+        if self.clash and self.num > 0:
+            self.num = self.num - 1
 
 
 class Ball(pygame.sprite.Sprite):
@@ -66,10 +72,12 @@ def init(ball_speed, ball_location, dumbo_location):
     dumbo = Dumbo(dumbo_image, dumbo_speed, dumbo_location)
     bricks = pygame.sprite.Group()
     color_dic = {3: "indianred4", 2: "indianred3", 1: "darksalmon"}
+    color_num = 3
     surface = pygame.Surface([90, 30])
     for row in range(3):
         for col in range(7):
-            brick = Brick(THECOLORS[color_dic[3]], surface, [35+col*140, 30+row*80], random.choice([True, False]))
+            brick = Brick(color_num, color_dic[color_num], surface,
+                          [35+col*140, 30+row*80], random.choice([True, False]), None)
             if brick.displayed:
                 bricks.add(brick)
 
@@ -83,9 +91,16 @@ def brick_blit(screen, group):
         screen.blit(elt.image, elt.rect)
 
 
-def check(group, ball, dumbo):
-    if pygame.sprite.spritecollide(ball, group, True):
-        ball.speed[1] = -ball.speed[1]
+def check_bnb(group, ball):
+    for elt in group:
+        if pygame.sprite.spritecollide(ball, pygame.sprite.Group(elt), False):
+            ball.speed[1] = -ball.speed[1]
+            elt.clash = True
+            elt.change_col()
+
+
+
+def check_bnd(ball, dumbo):
     if pygame.sprite.spritecollide(dumbo, pygame.sprite.Group(ball), False):
         ball.speed[1] = -ball.speed[1]
 
@@ -114,7 +129,8 @@ def main():
     event(screen, dumbo)
 
     ball.move(screen)
-    check(bricks, ball, dumbo)
+    check_bnb(bricks, ball)
+    check_bnd(ball, dumbo)
     screen.blit(ball.image, ball.rect)
     screen.blit(dumbo.image, dumbo.rect)
     brick_blit(screen, bricks)
