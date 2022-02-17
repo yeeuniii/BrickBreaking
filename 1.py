@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 import os
-os.chdir("C:\\Users\\박예은\\AppData\\Local\\Programs\\Python\\Python37\\One_Big_Archive")
+os.chdir(".\\image")
 
 
 class Ball(pygame.sprite.Sprite):
