@@ -94,10 +94,13 @@ def add_group(group, element):
 def make_bricks():
     bricks = pygame.sprite.Group()
     surface = pygame.Surface([90, 30])
-    for row in range(3):
-        for col in range(7):
-            brick = Brick(surface, [35 + col * 140, 30 + row * 80], random.choice([True, False]))
-            add_group(bricks, brick)
+    num_list1 = [0, 1, 2] * 7
+    num_list2 = [0, 1, 2, 3, 4, 5, 6] * 3
+    ordered_pair = []
+    for row, col in zip(num_list1, num_list2):
+        ordered_pair.append((row, col))
+        brick = Brick(surface, [35 + col * 140, 30 + row * 80], random.choice([True, False]))
+        add_group(bricks, brick)
     return bricks
 
 
