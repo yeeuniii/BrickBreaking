@@ -162,6 +162,7 @@ def main():
     ball = make_ball([8, 7], [500, 320])
     dumbo = make_dumbo([500, 510])
     bricks = make_bricks()
+
     while True:
         screen.fill([255, 255, 255])
         clock.tick(30)
