@@ -1,33 +1,40 @@
 import pygame
+from pygame.colordict import THECOLORS
 import sys
 import random
 import os
-os.chdir("C:\\Users\\박예은\\PycharmProjects\\pythonProject\\BrickBreaking\\image")
+os.chdir(".\\image")
 
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, chance, location, boolean):
+    def __init__(self, surface, location, displayed):
         pygame.sprite.Sprite.__init__(self)
-        image = pygame.Surface([90, 30])   # Brick size
-        color = {3: "indianred4", 2: "indianred3", 1: "darksalmon"}
-        self.chance = chance
-        self.color = color[self.chance]
-        image.fill(pygame.colordict.THECOLORS[self.color])
-        self.image = image.convert()
+        self.color = THECOLORS[random.choice(["indianred4", "indianred3", "darksalmon"])]
+        self.image = surface.convert()
+        self.image.fill(self.color)
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
-        self.boolean = boolean
+        self.displayed = displayed
+
+    def change_color(self, group):
+        if self.color == THECOLORS["indianred4"]:
+            self.color = THECOLORS["indianred3"]
+        elif self.color == THECOLORS["indianred3"]:
+            self.color = THECOLORS["darksalmon"]
+        else:
+            group.remove(self)
+        self.image.fill(self.color)
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, image_file, speed, location):
+    def __init__(self, image, speed, location):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load(image_file)
+        self.image = image
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
         self.speed = speed
 
-    def move(self):
+    def move(self, screen):
         self.rect = self.rect.move(self.speed)
         if self.rect.left <= 0 or self.rect.right >= screen.get_width():
             self.speed[0] = -self.speed[0]
@@ -35,65 +42,130 @@ class Ball(pygame.sprite.Sprite):
             self.speed[1] = -self.speed[1]
 
 
-def animate(group):
-    for i in group:
-        screen.blit(i.image, i.rect)
+class Dumbo(pygame.sprite.Sprite):
+    def __init__(self, image, speed, location):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
+        self.speed = speed
+
+    def edge(self, screen):
+        if self.rect.left <= 0:
+            self.rect.left = 0
+        if self.rect.right >= screen.get_width():
+            self.rect.right = screen.get_width()
+
+    def move_left(self, key_type):
+        if key_type == pygame.K_LEFT:
+            self.rect.left = self.rect.left - self.speed[0]
+
+    def move_right(self, key_type):
+        if key_type == pygame.K_RIGHT:
+            self.rect.left = self.rect.left + self.speed[0]
 
 
-def check(group, ball):
-    for i in group:
-        if pygame.sprite.spritecollide(ball, pygame.sprite.Group(i), True):
-            ball.speed[1] = -ball.speed[1]
-            rect = i.rect.left, i.rect.top
-            chance = i.chance
-            if chance > 1:
-                new_brick = Brick(chance-1, rect, True)
-                brick_group.add(new_brick)
+def init():
+    pygame.init()
+    pygame.key.set_repeat(100, 50)
 
 
-pygame.init()
-screen = pygame.display.set_mode([1000, 630])
-screen.fill([255, 255, 255])
-ball_speed = [random.randint(8, 10), random.randint(5, 10)]
-my_ball = Ball("ball.png", ball_speed, screen.get_rect().center)   # ball 객체 생성
-# main_image = pygame.image.load("dumbo_image.png")
-# main = Ball("dumbo_image.png", None,
-# [screen.get_width()/2, screen.get_height()-main_image.get_height()])
-# 우선 이미지의 높이를 안다는 전제하에. 근데 모른다면? 어떻게 할지 더 생각해보기
-main = Ball("dumbo_image.png", [15, 0], [screen.get_width()/2, screen.get_height()-130])    # main 객체 생성
+def make_ball(ball_speed, ball_location):
+    ball_image = pygame.image.load("ball.png")
+    return Ball(ball_image, ball_speed, ball_location)
 
 
-brick_group = pygame.sprite.Group()   # 벽돌 그룹 생성
-for row in range(3):                    # 벽돌 객체 생성 후 그룹에 넣음
-    for col in range(7):
-        brick = Brick(random.choice([1, 2, 3]), [35+col*140, 30+row*80], random.choice([True, False]))
-        if brick.boolean:
-            brick_group.add(brick)
+def make_dumbo(dumbo_location):
+    dumbo_image = pygame.image.load("dumbo_image.png")
+    dumbo_speed = [15, 0]
+    return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
 
-clock = pygame.time.Clock()
-delay = 100
-interval = 50
-pygame.key.set_repeat(delay, interval)  # 연속 키
 
-while True:
-    clock.tick(20)
-    screen.fill([255, 255, 255])
+def add_group(group, element):
+    if element.displayed:
+        group.add(element)
+
+
+def make_bricks():
+    bricks = pygame.sprite.Group()
+    surface = pygame.Surface([90, 30])
+    num_list1 = [0, 1, 2] * 7
+    num_list2 = [0, 1, 2, 3, 4, 5, 6] * 3
+    ordered_pair = []
+    for row, col in zip(num_list1, num_list2):
+        ordered_pair.append((row, col))
+        brick = Brick(surface, [35 + col * 140, 30 + row * 80], random.choice([True, False]))
+        add_group(bricks, brick)
+    return bricks
+
+
+def check1(dumbo, ball):
+    if pygame.sprite.spritecollide(dumbo, pygame.sprite.Group(ball), False):
+        ball.speed[1] = -ball.speed[1]
+
+
+def check2(ball, element, group):
+    if pygame.sprite.spritecollide(ball, pygame.sprite.Group(element), False):
+        ball.speed[1] = -ball.speed[1]
+        element.change_color(group)
+
+
+def change_brick_color(ball, group):
+    for element in group:
+        check2(ball, element, group)
+
+
+def whole_check(group, ball, dumbo):
+    check1(dumbo, ball)
+    change_brick_color(ball, group)
+
+
+def terminate(event):
+    if event.type == pygame.QUIT:
+        sys.exit()
+
+
+def press_key_event(event, dumbo):
+    if event.type == pygame.KEYDOWN:
+        dumbo.move_left(event.key)
+        dumbo.move_right(event.key)
+
+
+def do_event(dumbo):
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                main.rect.left = main.rect.left - main.speed[0]
-            elif event.key == pygame.K_RIGHT:
-                main.rect.left = main.rect.left + main.speed[0]
-#            elif event.key == pygame.K_SPACE: # 점프 생각보다 생각할게 많네,,?
-#                main.rect.
+        terminate(event)
+        press_key_event(event, dumbo)
 
-    my_ball.move()
-    if pygame.sprite.spritecollide(main, pygame.sprite.Group(my_ball), False):
-        my_ball.speed[1] = -my_ball.speed[1]
-    screen.blit(main.image, main.rect)
-    screen.blit(my_ball.image, my_ball.rect)
-    animate(brick_group)
-    check(brick_group, my_ball)
-    pygame.display.flip()
+
+def brick_blit(screen, group):
+    for element in group:
+        screen.blit(element.image, element.rect)
+
+
+def whole_blit(screen, ball, dumbo, bricks):
+    screen.blit(ball.image, ball.rect)
+    screen.blit(dumbo.image, dumbo.rect)
+    brick_blit(screen, bricks)
+
+
+def main():
+    init()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode([1000, 630])
+    ball = make_ball([8, 7], [500, 320])
+    dumbo = make_dumbo([500, 510])
+    bricks = make_bricks()
+    while True:
+        screen.fill([255, 255, 255])
+        clock.tick(30)
+
+        do_event(dumbo)
+
+        ball.move(screen)
+        dumbo.edge(screen)
+        whole_check(bricks, ball, dumbo)
+        whole_blit(screen, ball, dumbo, bricks)
+        pygame.display.flip()
+
+
+main()
