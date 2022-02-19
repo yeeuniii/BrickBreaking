@@ -3,7 +3,6 @@ from pygame.colordict import THECOLORS
 import sys
 import random
 import os
-import turtle
 os.chdir(".\\image")
 
 
