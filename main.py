@@ -108,7 +108,7 @@ def make_bricks():
     ordered_pair = []
     for row, col in zip(num_list1, num_list2):
         ordered_pair.append((row, col))
-        brick = Brick(surface, [35 + col * 140, 30 + row * 80], random.choice([True, False]))
+        brick = Brick(surface, [35 + col * 140, 40 + row * 80], random.choice([True, False]))
         add_group(bricks, brick)
     return bricks
 
@@ -118,20 +118,24 @@ def check1(dumbo, ball):
         ball.speed[1] = -ball.speed[1]
 
 
-def check2(ball, element, group):
+def check2(ball, element, group, points):
     if pygame.sprite.spritecollide(ball, pygame.sprite.Group(element), False):
         ball.speed[1] = -ball.speed[1]
         element.change_color(group)
+        points = points + 1
+    return points
 
 
-def change_brick_color(ball, group):
+def change_brick_color(ball, group, points):
     for element in group:
-        check2(ball, element, group)
+        points = check2(ball, element, group, points)
+    return points
 
 
-def whole_check(group, ball, dumbo):
+def whole_check(group, ball, dumbo, points):
     check1(dumbo, ball)
-    change_brick_color(ball, group)
+    points = change_brick_color(ball, group, points)
+    return points
 
 
 def reset(group):
@@ -176,11 +180,12 @@ def show_font(font, string, screen, position):
     screen.blit(ft, position)
 
 
-def show_ending(screen):
+def show_ending(screen, points):
     screen.fill([255, 255, 255])
     font_b = pygame.font.Font(None, 70)
     font_s = pygame.font.Font(None, 50)
     show_font(font_b, "GAME OVER", screen, [350, 100])
+    show_font(font_s, "You`r final score : " + str(points), screen, [320, 150])
     show_font(font_s, "AGAIN", screen, [200, 450])
     show_font(font_s, "END", screen, [700, 450])
     return screen
@@ -191,12 +196,14 @@ def group_blit(screen, group):
         screen.blit(element.image, element.rect)
 
 
-def blit(screen, ball, dumbo, bricks):
+def whole_blit(screen, ball, dumbo, bricks, points):
+    font = pygame.font.Font(None, 30)
+    show_font(font, "SCORE : " + str(points), screen, [870, 20])
     screen.blit(ball.image, ball.rect)
     screen.blit(dumbo.image, dumbo.rect)
     group_blit(screen, bricks)
     if ball.rect.bottom >= screen.get_height():
-        show_ending(screen)
+        show_ending(screen, points)
 
 
 def main():
@@ -206,6 +213,7 @@ def main():
     ball = make_ball([8, 7], [500, 250])
     dumbo = make_dumbo([500, 510])
     bricks = make_bricks()
+    points = 0
 
     while True:
         screen.fill([255, 255, 255])
@@ -215,9 +223,9 @@ def main():
 
         ball.move(screen)
         dumbo.edge(screen)
-        whole_check(bricks, ball, dumbo)
+        points = whole_check(bricks, ball, dumbo, points)
         bricks = reset(bricks)
-        blit(screen, ball, dumbo, bricks)
+        whole_blit(screen, ball, dumbo, bricks, points)
         pygame.display.flip()
 
 
