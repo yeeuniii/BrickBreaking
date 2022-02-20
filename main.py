@@ -64,19 +64,8 @@ class Dumbo(pygame.sprite.Sprite):
         if key_type == pygame.K_RIGHT:
             self.rect.left = self.rect.left + self.speed[0]
 
-    def up(self, screen):
-        for i in range(3):
-
-            screen.blit(self.image, self.rect)
-
-    def down(self, screen):
-        for i in range(3):
-            self.rect.top = self.rect.top + self.speed[1]
-            screen.blit(self.image, self.rect)
-
-    def jump(self, key_type, screen):
-        if key_type == pygame.K_SPACE:
-            self.up(screen)
+    def updown(self):
+        self.rect.top = self.rect.top - self.speed[1]
 
 
 def init():
@@ -91,7 +80,7 @@ def make_ball(ball_speed, ball_location):
 
 def make_dumbo(dumbo_location):
     dumbo_image = pygame.image.load("dumbo_image.png")
-    dumbo_speed = [15, 5]
+    dumbo_speed = [15, 10]
     return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
 
 
@@ -145,6 +134,31 @@ def reset(group):
     return group
 
 
+def determine_sign(dumbo):
+    if dumbo.speed[1] > 0:
+        result = "+"
+    elif dumbo.speed[1] == 0:
+        result = 0
+    else:
+        result = "-"
+    return result
+
+
+def change_sign(num):
+    num = - num
+    return num
+
+
+def jump(dumbo):
+    sign = determine_sign(dumbo)
+    if (sign == "+" and dumbo.rect.top >= 450) or (sign == "-" and dumbo.rect.top <= 630):
+        dumbo.updown()
+    print(dumbo.speed[1])
+    if dumbo.rect.top < 450 or dumbo.rect.bottom > 630:
+        dumbo.speed[1] = change_sign(dumbo.speed[1])
+    return dumbo.speed
+
+
 def terminate(event):
     if event.type == pygame.QUIT:
         sys.exit()
@@ -154,6 +168,8 @@ def press_key_event(event, dumbo):
     if event.type == pygame.KEYDOWN:
         dumbo.move_left(event.key)
         dumbo.move_right(event.key)
+        if event.key == pygame.K_SPACE:
+            jump(dumbo)
 
 
 def ending_event(event):
@@ -202,8 +218,8 @@ def whole_blit(screen, ball, dumbo, bricks, points):
     screen.blit(ball.image, ball.rect)
     screen.blit(dumbo.image, dumbo.rect)
     group_blit(screen, bricks)
-    if ball.rect.bottom >= screen.get_height():
-        show_ending(screen, points)
+#    if ball.rect.bottom >= screen.get_height():
+#        show_ending(screen, points)
 
 
 def main():
@@ -225,6 +241,7 @@ def main():
         dumbo.edge(screen)
         points = whole_check(bricks, ball, dumbo, points)
         bricks = reset(bricks)
+        dumbo.speed = jump(dumbo)
         whole_blit(screen, ball, dumbo, bricks, points)
         pygame.display.flip()
 
