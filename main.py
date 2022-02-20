@@ -149,14 +149,16 @@ def change_sign(num):
     return num
 
 
-def jump(dumbo):
+def jump(dumbo, time):
     sign = determine_sign(dumbo)
-    if (sign == "+" and dumbo.rect.top >= 450) or (sign == "-" and dumbo.rect.top <= 630):
+    if ((sign == "+" and dumbo.rect.top > 450) or (sign == "-" and dumbo.rect.top < 630)) and time:
         dumbo.updown()
-    print(dumbo.speed[1])
-    if dumbo.rect.top < 450 or dumbo.rect.bottom > 630:
+    if (dumbo.rect.top <= 450 or dumbo.rect.bottom >= 630) and time:
         dumbo.speed[1] = change_sign(dumbo.speed[1])
-    return dumbo.speed
+    if dumbo.rect.bottom == 630:
+        time = 0
+    print(time)
+    return [dumbo.speed, time]
 
 
 def terminate(event):
@@ -164,12 +166,16 @@ def terminate(event):
         sys.exit()
 
 
+def press_space_key(key_type):
+    if key_type == pygame.K_SPACE:
+        pass
+
+
 def press_key_event(event, dumbo):
     if event.type == pygame.KEYDOWN:
         dumbo.move_left(event.key)
         dumbo.move_right(event.key)
-        if event.key == pygame.K_SPACE:
-            jump(dumbo)
+#        press_space_key(event.key)
 
 
 def ending_event(event):
@@ -227,9 +233,10 @@ def main():
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode([1000, 630])
     ball = make_ball([8, 7], [500, 250])
-    dumbo = make_dumbo([500, 510])
+    dumbo = make_dumbo([500, 500])
     bricks = make_bricks()
     points = 0
+    time = 1
 
     while True:
         screen.fill([255, 255, 255])
@@ -241,7 +248,9 @@ def main():
         dumbo.edge(screen)
         points = whole_check(bricks, ball, dumbo, points)
         bricks = reset(bricks)
-        dumbo.speed = jump(dumbo)
+
+        dumbo.speed, time = jump(dumbo, time)
+
         whole_blit(screen, ball, dumbo, bricks, points)
         pygame.display.flip()
 
