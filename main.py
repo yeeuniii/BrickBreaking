@@ -157,7 +157,12 @@ def jump(dumbo, time):
         dumbo.speed[1] = change_sign(dumbo.speed[1])
     if dumbo.rect.bottom == 630:
         time = 0
-    print(time)
+    return [dumbo.speed, time]
+
+
+def jump_or_not(time, dumbo):
+    if time:
+        dumbo.speed, time = jump(dumbo, time)
     return [dumbo.speed, time]
 
 
@@ -166,16 +171,18 @@ def terminate(event):
         sys.exit()
 
 
-def press_space_key(key_type):
+def press_space_key(key_type, time):
     if key_type == pygame.K_SPACE:
-        pass
+        time = 1
+    return time
 
 
-def press_key_event(event, dumbo):
+def press_key_event(event, dumbo, time):
     if event.type == pygame.KEYDOWN:
         dumbo.move_left(event.key)
         dumbo.move_right(event.key)
-#        press_space_key(event.key)
+        time = press_space_key(event.key, time)
+    return time
 
 
 def ending_event(event):
@@ -190,11 +197,12 @@ def press_mouse_event(event):
         ending_event(event)
 
 
-def do_event(dumbo):
+def do_event(dumbo, time):
     for event in pygame.event.get():
         terminate(event)
-        press_key_event(event, dumbo)
+        time = press_key_event(event, dumbo, time)
         press_mouse_event(event)
+    return time
 
 
 def show_font(font, string, screen, position):
@@ -224,8 +232,8 @@ def whole_blit(screen, ball, dumbo, bricks, points):
     screen.blit(ball.image, ball.rect)
     screen.blit(dumbo.image, dumbo.rect)
     group_blit(screen, bricks)
-#    if ball.rect.bottom >= screen.get_height():
-#        show_ending(screen, points)
+    if ball.rect.bottom >= screen.get_height():
+        show_ending(screen, points)
 
 
 def main():
@@ -236,21 +244,18 @@ def main():
     dumbo = make_dumbo([500, 500])
     bricks = make_bricks()
     points = 0
-    time = 1
+    time = 0
 
     while True:
         screen.fill([255, 255, 255])
         clock.tick(30)
 
-        do_event(dumbo)
-
+        time = do_event(dumbo, time)
+        dumbo.speed, time = jump_or_not(time, dumbo)
         ball.move(screen)
         dumbo.edge(screen)
         points = whole_check(bricks, ball, dumbo, points)
         bricks = reset(bricks)
-
-        dumbo.speed, time = jump(dumbo, time)
-
         whole_blit(screen, ball, dumbo, bricks, points)
         pygame.display.flip()
 
