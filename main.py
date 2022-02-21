@@ -7,9 +7,9 @@ os.chdir(".\\image")
 
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, surface, location, displayed):
+    def __init__(self, color_list, surface, location, displayed):
         pygame.sprite.Sprite.__init__(self)
-        self.color = THECOLORS[random.choice(["indianred4", "indianred3", "darksalmon"])]
+        self.color = THECOLORS[color_list]
         self.image = surface.convert()
         self.image.fill(self.color)
         self.rect = self.image.get_rect()
@@ -97,7 +97,8 @@ def make_bricks():
     ordered_pair = []
     for row, col in zip(num_list1, num_list2):
         ordered_pair.append((row, col))
-        brick = Brick(surface, [35 + col * 140, 40 + row * 80], random.choice([True, False]))
+        brick = Brick(random.choice(["indianred4", "indianred3", "darksalmon"]), surface,
+                      [35 + col * 140, 40 + row * 80], random.choice([True, False]))
         add_group(bricks, brick)
     return bricks
 
