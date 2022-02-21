@@ -1,29 +1,36 @@
 import pygame
-from pygame.colordict import THECOLORS
 import sys
 import random
 import os
 os.chdir(".\\image")
 
+THECOLORS = pygame.colordict.THECOLORS
+INDIANRED4 = THECOLORS["indianred4"]
+INDIANRED3 = THECOLORS["indianred3"]
+DARKSALMON = THECOLORS["darksalmon"]
+
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, color_list, surface, location, displayed):
+    def __init__(self, color, surface, location, displayed):
         pygame.sprite.Sprite.__init__(self)
-        self.color = THECOLORS[color_list]
+        self.color = color
         self.image = surface.convert()
         self.image.fill(self.color)
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
         self.displayed = displayed
 
-    def change_color(self, group):
-        if self.color == THECOLORS["indianred4"]:
-            self.color = THECOLORS["indianred3"]
-        elif self.color == THECOLORS["indianred3"]:
-            self.color = THECOLORS["darksalmon"]
-        else:
-            group.remove(self)
+    def change_color(self):
+        if self.color == INDIANRED4:
+            self.color = INDIANRED3
+        elif self.color == INDIANRED3:
+            self.color = DARKSALMON
+
         self.image.fill(self.color)
+
+    def get_out(self, group):
+        if self.color == DARKSALMON:
+            group.remove(self)
 
 
 class Ball(pygame.sprite.Sprite):
@@ -50,7 +57,7 @@ class Dumbo(pygame.sprite.Sprite):
         self.rect.left, self.rect.top = location
         self.speed = speed
 
-    def edge(self, screen):
+    def hit_edge(self, screen):
         if self.rect.left <= 0:
             self.rect.left = 0
         if self.rect.right >= screen.get_width():
@@ -94,36 +101,35 @@ def make_bricks():
     surface = pygame.Surface([90, 30])
     num_list1 = [0, 1, 2] * 7
     num_list2 = [0, 1, 2, 3, 4, 5, 6] * 3
-    ordered_pair = []
     for row, col in zip(num_list1, num_list2):
-        ordered_pair.append((row, col))
-        brick = Brick(random.choice(["indianred4", "indianred3", "darksalmon"]), surface,
+        brick = Brick(random.choice([INDIANRED4, INDIANRED3, DARKSALMON]), surface,
                       [35 + col * 140, 40 + row * 80], random.choice([True, False]))
         add_group(bricks, brick)
     return bricks
 
 
-def check1(dumbo, ball):
+def ballndumbo_collision(dumbo, ball):
     if pygame.sprite.spritecollide(dumbo, pygame.sprite.Group(ball), False):
         ball.speed[1] = -ball.speed[1]
 
 
-def check2(ball, element, group, points):
+def ballnbrick_collision(ball, element, group, points):
     if pygame.sprite.spritecollide(ball, pygame.sprite.Group(element), False):
         ball.speed[1] = -ball.speed[1]
-        element.change_color(group)
+        element.get_out(group)
+        element.change_color()
         points = points + 1
     return points
 
 
 def change_brick_color(ball, group, points):
     for element in group:
-        points = check2(ball, element, group, points)
+        points = ballnbrick_collision(ball, element, group, points)
     return points
 
 
 def whole_check(group, ball, dumbo, points):
-    check1(dumbo, ball)
+    ballndumbo_collision(dumbo, ball)
     points = change_brick_color(ball, group, points)
     return points
 
@@ -254,7 +260,7 @@ def main():
         time = do_event(dumbo, time)
         dumbo.speed, time = jump_or_not(time, dumbo)
         ball.move(screen)
-        dumbo.edge(screen)
+        dumbo.hit_edge(screen)
         points = whole_check(bricks, ball, dumbo, points)
         bricks = reset(bricks)
         whole_blit(screen, ball, dumbo, bricks, points)
