@@ -23,7 +23,7 @@ class Brick(pygame.sprite.Sprite):
     def change_color(self):
         if self.color == INDIANRED4:
             self.color = INDIANRED3
-        elif self.color == INDIANRED3:
+        if self.color == INDIANRED3:
             self.color = DARKSALMON
 
         self.image.fill(self.color)
@@ -108,12 +108,12 @@ def make_bricks():
     return bricks
 
 
-def ballndumbo_collision(dumbo, ball):
+def check_dumbo_and_ball(dumbo, ball):
     if pygame.sprite.spritecollide(dumbo, pygame.sprite.Group(ball), False):
         ball.speed[1] = -ball.speed[1]
 
 
-def ballnbrick_collision(ball, element, group, points):
+def check_ball_and_bricks(ball, element, group, points):
     if pygame.sprite.spritecollide(ball, pygame.sprite.Group(element), False):
         ball.speed[1] = -ball.speed[1]
         element.get_out(group)
@@ -124,12 +124,12 @@ def ballnbrick_collision(ball, element, group, points):
 
 def change_brick_color(ball, group, points):
     for element in group:
-        points = ballnbrick_collision(ball, element, group, points)
+        points = check_ball_and_bricks(ball, element, group, points)
     return points
 
 
-def whole_check(group, ball, dumbo, points):
-    ballndumbo_collision(dumbo, ball)
+def check_whole_crash(group, ball, dumbo, points):
+    check_dumbo_and_ball(dumbo, ball)
     points = change_brick_color(ball, group, points)
     return points
 
@@ -261,7 +261,7 @@ def main():
         dumbo.speed, time = jump_or_not(time, dumbo)
         ball.move(screen)
         dumbo.hit_edge(screen)
-        points = whole_check(bricks, ball, dumbo, points)
+        points = check_whole_crash(bricks, ball, dumbo, points)
         bricks = reset(bricks)
         whole_blit(screen, ball, dumbo, bricks, points)
         pygame.display.flip()
