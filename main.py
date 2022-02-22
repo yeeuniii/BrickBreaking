@@ -72,7 +72,8 @@ class Dumbo(pygame.sprite.Sprite):
 
     def move_updown(self):
         self.rect.top = self.rect.top - self.speed[1]
-        if self.rect.top < 450 and self.speed[1] > 0:
+        if self.rect.top < 450:
+            self.rect.top = 450
             self.speed[1] = - self.speed[1]
         if self.rect.bottom == 630:
             self.speed[1] = 0
@@ -242,12 +243,13 @@ def main():
         do_event(dumbo, current)
         ball.move(screen)
         dumbo.move_updown()
+        print(dumbo.rect.top)
         dumbo.hit_edge(screen)
         check_dumbo_and_ball(dumbo, ball)
         points = change_brick_color(ball, bricks, points)
         bricks = reset(bricks)
         blit_all(screen, ball, dumbo, bricks, points)
-        screen = show_ending(ball, screen, current, points)
+#        screen = show_ending(ball, screen, current, points)
         pygame.display.flip()
 
 
