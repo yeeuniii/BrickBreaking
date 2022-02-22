@@ -169,18 +169,18 @@ def press_key_event(event, dumbo):
         press_space_key(event.key, dumbo)
 
 
-def click_again_and_end(pos):
+def click_again_and_end(pos, current):
     again_rect = pygame.Rect(200, 450, 112, 34)
     end_rect = pygame.Rect(700, 450, 73, 34)
     if pygame.Rect.collidepoint(again_rect, pos):
         main()
     if pygame.Rect.collidepoint(end_rect, pos):
-        sys.exit()
+        current.change_end(False)
 
 
 def show_or_not(current, pos):
     if current.of_game_over:
-        click_again_and_end(pos)
+        click_again_and_end(pos, current)
 
 
 def press_mouse_event(event, current):
@@ -202,7 +202,7 @@ def blit_font(font, string, screen, position):
 
 def show_ending(ball, screen, current, points):
     if ball.rect.bottom >= screen.get_height():
-        current.of_game_over = True
+        current.change_game_over(True)
         screen.fill([255, 255, 255])
         font_b = pygame.font.Font(None, 70)
         font_s = pygame.font.Font(None, 50)
@@ -249,7 +249,7 @@ def main():
         points = change_brick_color(ball, bricks, points)
         bricks = reset(bricks)
         blit_all(screen, ball, dumbo, bricks, points)
-#        screen = show_ending(ball, screen, current, points)
+        screen = show_ending(ball, screen, current, points)
         pygame.display.flip()
 
 
