@@ -26,7 +26,7 @@ class Brick(pygame.sprite.Sprite):
 
     def delete(self, group):
         if self.color == DARKSALMON:
-            group.delete(self)
+            group.remove(self)
 
 
 class Ball(pygame.sprite.Sprite):
@@ -46,13 +46,12 @@ class Ball(pygame.sprite.Sprite):
 
 
 class Dumbo(pygame.sprite.Sprite):
-    def __init__(self, image, speed, location, jumping):
+    def __init__(self, image, speed, location):
         pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
         self.speed = speed
-        self.jumping = jumping
 
     def hit_edge(self, screen):
         if self.rect.left <= 0:
@@ -74,11 +73,9 @@ class Dumbo(pygame.sprite.Sprite):
     def move_updown(self):
         self.rect.top = self.rect.top - self.speed[1]
         if self.rect.top < 450:
-            self.jumping = True
             self.rect.top = 450
             self.speed[1] = - self.speed[1]
         if self.rect.bottom == 630:
-            self.jumping = False
             self.speed[1] = 0
 
 
@@ -107,7 +104,7 @@ def make_ball(ball_speed, ball_location):
 def make_dumbo(dumbo_location):
     dumbo_image = pygame.image.load("./image/dumbo_image.png")
     dumbo_speed = [15, 0]
-    return Dumbo(dumbo_image, dumbo_speed, dumbo_location, False)
+    return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
 
 
 def add_group(group, element):
@@ -161,7 +158,7 @@ def end_program(event):
 
 
 def press_space_key(key_type, dumbo):
-    if key_type == pygame.K_SPACE and not dumbo.jumping:
+    if key_type == pygame.K_SPACE and dumbo.speed[1] == 0:
         dumbo.change_y_speed(10)
 
 
