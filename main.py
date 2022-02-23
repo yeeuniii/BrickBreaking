@@ -18,15 +18,14 @@ class Brick(pygame.sprite.Sprite):
         self.displayed = displayed
 
     def change_color(self):
-        if self.color == INDIANRED4:
-            self.color = INDIANRED3
         if self.color == INDIANRED3:
             self.color = DARKSALMON
+        if self.color == INDIANRED4:
+            self.color = INDIANRED3
         self.image.fill(self.color)
 
-    def delete(self, group):
-        if self.color == DARKSALMON:
-            group.remove(self)
+    def is_darksalmon(self):
+        return self.color == DARKSALMON
 
 
 class Ball(pygame.sprite.Sprite):
@@ -107,7 +106,7 @@ def make_dumbo(dumbo_location):
     return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
 
 
-def add_group(group, element):
+def add_group(element, group):
     if element.displayed:
         group.add(element)
 
@@ -121,7 +120,7 @@ def make_bricks():
         brick_color = random.choice([INDIANRED4, INDIANRED3, DARKSALMON])
         brick_location = [35 + col * 140, 40 + row * 80]
         brick = Brick(brick_color, surface, brick_location, random.choice([True, False]))
-        add_group(bricks, brick)
+        add_group(brick, bricks)
     return bricks
 
 
@@ -130,10 +129,15 @@ def check_dumbo_and_ball(dumbo, ball):
         ball.speed[1] = -ball.speed[1]
 
 
+def delete_from_group(element, group):
+    if element.is_darksalmon():
+        group.remove(element)
+
+
 def check_ball_and_bricks(ball, element, group, points):
     if pygame.sprite.spritecollide(ball, pygame.sprite.Group(element), False):
         ball.speed[1] = -ball.speed[1]
-        element.delete(group)
+        delete_from_group(element, group)
         element.change_color()
         points = points + 1
     return points
