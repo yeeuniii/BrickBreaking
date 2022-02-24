@@ -30,6 +30,17 @@ class Brick(pygame.sprite.Sprite):
 class Bricks(pygame.sprite.Group):
     def __init__(self):
         pygame.sprite.Group.__init__(self)
+        self.make()
+
+    def make(self):
+        surface = pygame.Surface([90, 30])
+        num_list1 = [0, 1, 2] * 1
+        num_list2 = [0, 1, 2, 3, 4, 5, 6] * 1
+        for row, col in zip(num_list1, num_list2):
+            brick_color = random.choice([INDIANRED4, INDIANRED3, DARKSALMON])
+            brick_location = [35 + col * 140, 40 + row * 80]
+            brick = Brick(brick_color, surface, brick_location, random.choice([True, False]))
+            self.add_brick(brick)
 
     def add_brick(self, brick):
         if brick.displayed:
@@ -38,6 +49,15 @@ class Bricks(pygame.sprite.Group):
     def delete_brick(self, brick):
         if brick.is_darksalmon():
             self.remove(brick)
+
+    def reset(self):
+        if not self:
+            pygame.time.delay(200)
+            self.make()
+
+    def blit_group(self, screen):
+        for element in self:
+            screen.blit(element.image, element.rect)
 
 
 class Ball(pygame.sprite.Sprite):
@@ -91,6 +111,11 @@ class Dumbo(pygame.sprite.Sprite):
         if self.rect.bottom == 630:
             self.speed[1] = 0
 
+    def is_not_jumping(self):
+        if self.speed[1] != 0:
+            return False
+        return True
+
 
 class Status:
     def __init__(self, is_end, is_game_over):
@@ -120,39 +145,13 @@ def make_dumbo(dumbo_location):
     return Dumbo(dumbo_image, dumbo_speed, dumbo_location)
 
 
-def make_bricks():
-    bricks = Bricks()
-    surface = pygame.Surface([90, 30])
-    num_list1 = [0, 1, 2] * 7
-    num_list2 = [0, 1, 2, 3, 4, 5, 6] * 3
-    for row, col in zip(num_list1, num_list2):
-        brick_color = random.choice([INDIANRED4, INDIANRED3, DARKSALMON])
-        brick_location = [35 + col * 140, 40 + row * 80]
-        brick = Brick(brick_color, surface, brick_location, random.choice([True, False]))
-        bricks.add_brick(brick)
-    return bricks
-
-
-def check_ball_and_bricks(ball, brick, bricks, points):
-    if pygame.sprite.spritecollide(ball, pygame.sprite.Group(brick), False):
+def check_ball_and_bricks(ball, bricks, points):
+    for brick in pygame.sprite.spritecollide(ball, bricks, False):
         ball.speed[1] = -ball.speed[1]
         bricks.delete_brick(brick)
         brick.change_color()
         points = points + 1
     return points
-
-
-def change_brick_color(ball, bricks, points):
-    for brick in bricks:
-        points = check_ball_and_bricks(ball, brick, bricks, points)
-    return points
-
-
-def reset(group):
-    if not group:
-        pygame.time.delay(100)
-        group = make_bricks()
-    return group
 
 
 def end_program(event, current):
@@ -161,7 +160,7 @@ def end_program(event, current):
 
 
 def press_space_key(key_type, dumbo):
-    if key_type == pygame.K_SPACE and not dumbo.speed[1]:
+    if key_type == pygame.K_SPACE and dumbo.is_not_jumping():
         dumbo.change_y_speed(10)
 
 
@@ -216,17 +215,12 @@ def show_ending(ball, screen, current, points):
     return screen
 
 
-def blit_group(screen, group):
-    for element in group:
-        screen.blit(element.image, element.rect)
-
-
 def blit_all(screen, ball, dumbo, bricks, points):
     font = pygame.font.Font(None, 30)
     blit_font(font, "SCORE : " + str(points), screen, [870, 20])
     screen.blit(ball.image, ball.rect)
     screen.blit(dumbo.image, dumbo.rect)
-    blit_group(screen, bricks)
+    bricks.blit_group(screen)
 
 
 def main():
@@ -235,7 +229,7 @@ def main():
     screen = pygame.display.set_mode([1000, 630])
     ball = make_ball([8, 7], [500, 250])
     dumbo = make_dumbo([500, 500])
-    bricks = make_bricks()
+    bricks = Bricks()
     points = 0
     current = Status(True, False)
 
@@ -247,8 +241,8 @@ def main():
         ball.move(screen, dumbo)
         dumbo.move_updown()
         dumbo.hit_edge(screen)
-        points = change_brick_color(ball, bricks, points)
-        bricks = reset(bricks)
+        points = check_ball_and_bricks(ball, bricks, points)
+        bricks.reset()
         blit_all(screen, ball, dumbo, bricks, points)
         screen = show_ending(ball, screen, current, points)
         pygame.display.flip()
