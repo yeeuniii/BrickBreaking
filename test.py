@@ -33,14 +33,14 @@ class Brick(pygame.sprite.Sprite):
 class Bricks(pygame.sprite.Group):
     def __init__(self):
         pygame.sprite.Group.__init__(self)
-        self.reset()
+        self.make()
         self.broken_number = 0
 
     def make(self):
         surface = pygame.Surface([90, 30])
-        row_list = [0, 1, 2] * 7
-        col_list = [0, 1, 2, 3, 4, 5, 6] * 3
-        for row, col in zip(row_list, col_list):
+        num_list1 = [0, 1, 2] * 1
+        num_list2 = [0, 1, 2, 3, 4, 5, 6] * 1
+        for row, col in zip(num_list1, num_list2):
             brick_color = random.choice([INDIANRED4, INDIANRED3, DARKSALMON])
             brick_location = [35 + col * 140, 40 + row * 80]
             brick = Brick(brick_color, surface, brick_location, random.choice([True, False]))
@@ -61,6 +61,7 @@ class Bricks(pygame.sprite.Group):
 
     def reset(self):
         if not self:
+            pygame.time.delay(200)
             self.make()
 
     def blit_group(self, screen):
@@ -211,22 +212,24 @@ def main():
     dumbo = make_dumbo([500, 500])
     bricks = Bricks()
 
-    while ball.is_visible(screen):
-        terminate()
-        screen.fill([255, 255, 255])
-        clock.tick(30)
-        press_key_event(dumbo)
-        ball.move(screen, dumbo)
-        dumbo.move_updown()
-        dumbo.hit_edge(screen)
-        check_ball_and_bricks(ball, bricks)
-        blit_all(screen, ball, dumbo, bricks)
-        pygame.display.flip()
+    while not bool(pygame.event.get(pygame.QUIT)):
 
-    while not_click_end():
-        terminate()
-        show_ending(screen, bricks.broken_number)
-        pygame.display.flip()
+        while ball.is_visible(screen):
+            screen.fill([255, 255, 255])
+            clock.tick(30)
+            press_key_event(dumbo)
+            ball.move(screen, dumbo)
+            dumbo.move_updown()
+            dumbo.hit_edge(screen)
+            check_ball_and_bricks(ball, bricks)
+            blit_all(screen, ball, dumbo, bricks)
+            pygame.display.flip()
+
+        while not_click_end():
+            show_ending(screen, bricks.broken_number)
+            pygame.display.flip()
+
+        quit()
 
 
 main()
