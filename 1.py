@@ -23,7 +23,7 @@ class Ball(pygame.sprite.Sprite):
 
 def animate(group):
     for elt in group:
-        elt.edge()
+        elt.hit_edge()
         screen.blit(elt.image, elt.rect)
 
 

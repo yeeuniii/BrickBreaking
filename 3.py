@@ -22,7 +22,7 @@ class Brick(pygame.sprite.Sprite):
         elif self.color == THECOLORS["indianred3"]:
             self.color = THECOLORS["darksalmon"]
         else:
-            group.remove(self)
+            group.delete(self)
         self.image.fill(self.color)
 
 

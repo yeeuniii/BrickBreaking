@@ -33,14 +33,14 @@ class Brick(pygame.sprite.Sprite):
 class Bricks(pygame.sprite.Group):
     def __init__(self):
         pygame.sprite.Group.__init__(self)
-        self.reset()
+        self.make()
         self.broken_number = 0
 
     def make(self):
         surface = pygame.Surface([90, 30])
-        row_list = [0, 1, 2] * 7
-        col_list = [0, 1, 2, 3, 4, 5, 6] * 3
-        for row, col in zip(row_list, col_list):
+        num_list1 = [0, 1, 2] * 1
+        num_list2 = [0, 1, 2, 3, 4, 5, 6] * 1
+        for row, col in zip(num_list1, num_list2):
             brick_color = random.choice([INDIANRED4, INDIANRED3, DARKSALMON])
             brick_location = [35 + col * 140, 40 + row * 80]
             brick = Brick(brick_color, surface, brick_location, random.choice([True, False]))
@@ -61,6 +61,7 @@ class Bricks(pygame.sprite.Group):
 
     def reset(self):
         if not self:
+            pygame.time.delay(200)
             self.make()
 
     def blit_group(self, screen):
@@ -86,7 +87,7 @@ class Ball(pygame.sprite.Sprite):
             self.speed[1] = -self.speed[1]
 
     def is_visible(self, screen):
-        return self.rect.bottom < screen.get_height()
+        return not self.rect.bottom >= screen.get_height()
 
 
 class Dumbo(pygame.sprite.Sprite):
@@ -103,11 +104,13 @@ class Dumbo(pygame.sprite.Sprite):
         if self.rect.right >= screen.get_width():
             self.rect.right = screen.get_width()
 
-    def move_left(self):
-        self.rect.left = self.rect.left - self.speed[0]
+    def move_left(self, key):
+        if key[pygame.K_LEFT]:
+            self.rect.left = self.rect.left - self.speed[0]
 
-    def move_right(self):
-        self.rect.left = self.rect.left + self.speed[0]
+    def move_right(self, key):
+        if key[pygame.K_RIGHT]:
+            self.rect.left = self.rect.left + self.speed[0]
 
     def change_y_speed(self, speed):
         self.speed[1] = speed
@@ -152,27 +155,17 @@ def press_space_key(key, dumbo):
         dumbo.change_y_speed(10)
 
 
-def press_left_key(key, dumbo):
-    if key[pygame.K_LEFT]:
-        dumbo.move_left()
-
-
-def press_right_key(key, dumbo):
-    if key[pygame.K_RIGHT]:
-        dumbo.move_right()
-
-
 def press_key_event(dumbo):
     key = pygame.key.get_pressed()
-    press_left_key(key, dumbo)
-    press_right_key(key, dumbo)
+    dumbo.move_left(key)
+    dumbo.move_right(key)
     press_space_key(key, dumbo)
 
 
 def click_again():
-    clicked = pygame.event.get(pygame.MOUSEBUTTONDOWN)
+    clicked = pygame.mouse.get_pressed()
     pos = pygame.mouse.get_pos()
-    if pygame.Rect.collidepoint(pygame.Rect(200, 450, 112, 34), pos) and clicked:
+    if pygame.Rect.collidepoint(pygame.Rect(200, 450, 112, 34), pos) and clicked[0]:
         main()
 
 
@@ -195,6 +188,7 @@ def show_ending(screen, point):
     blit_font(font_s, "You`r final score : " + str(point), screen, [320, 150])
     blit_font(font_s, "AGAIN", screen, [200, 450])
     blit_font(font_s, "END", screen, [700, 450])
+    click_again()
 
 
 def blit_all(screen, ball, dumbo, bricks):
@@ -210,28 +204,6 @@ def terminate():
         quit()
 
 
-def play(ball, screen, clock, dumbo, bricks):
-    while ball.is_visible(screen):
-        terminate()
-        screen.fill([255, 255, 255])
-        clock.tick(30)
-        press_key_event(dumbo)
-        ball.move(screen, dumbo)
-        dumbo.move_updown()
-        dumbo.hit_edge(screen)
-        check_ball_and_bricks(ball, bricks)
-        blit_all(screen, ball, dumbo, bricks)
-        pygame.display.flip()
-
-
-def do_again(screen, bricks):
-    show_ending(screen, bricks.broken_number)
-    pygame.display.flip()
-    while not_click_end():
-        terminate()
-        click_again()
-
-
 def main():
     init()
     clock = pygame.time.Clock()
@@ -240,8 +212,24 @@ def main():
     dumbo = make_dumbo([500, 500])
     bricks = Bricks()
 
-    play(ball, screen, clock, dumbo, bricks)
-    do_again(screen, bricks)
+    while not bool(pygame.event.get(pygame.QUIT)):
+
+        while ball.is_visible(screen):
+            screen.fill([255, 255, 255])
+            clock.tick(30)
+            press_key_event(dumbo)
+            ball.move(screen, dumbo)
+            dumbo.move_updown()
+            dumbo.hit_edge(screen)
+            check_ball_and_bricks(ball, bricks)
+            blit_all(screen, ball, dumbo, bricks)
+            pygame.display.flip()
+
+        while not_click_end():
+            show_ending(screen, bricks.broken_number)
+            pygame.display.flip()
+
+        quit()
 
 
 main()
