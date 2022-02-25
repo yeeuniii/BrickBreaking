@@ -86,7 +86,7 @@ class Ball(pygame.sprite.Sprite):
             self.speed[1] = -self.speed[1]
 
     def is_visible(self, screen):
-        return not self.rect.bottom >= screen.get_height()
+        return self.rect.bottom < screen.get_height()
 
 
 class Dumbo(pygame.sprite.Sprite):
@@ -103,13 +103,11 @@ class Dumbo(pygame.sprite.Sprite):
         if self.rect.right >= screen.get_width():
             self.rect.right = screen.get_width()
 
-    def move_left(self, key):
-        if key[pygame.K_LEFT]:
-            self.rect.left = self.rect.left - self.speed[0]
+    def move_left(self):
+        self.rect.left = self.rect.left - self.speed[0]
 
-    def move_right(self, key):
-        if key[pygame.K_RIGHT]:
-            self.rect.left = self.rect.left + self.speed[0]
+    def move_right(self):
+        self.rect.left = self.rect.left + self.speed[0]
 
     def change_y_speed(self, speed):
         self.speed[1] = speed
@@ -154,10 +152,20 @@ def press_space_key(key, dumbo):
         dumbo.change_y_speed(10)
 
 
+def press_left_key(key, dumbo):
+    if key[pygame.K_LEFT]:
+        dumbo.move_left(key)
+
+
+def press_right_key(key, dumbo):
+    if key[pygame.K_RIGHT]:
+        dumbo.move_right(key)
+
+
 def press_key_event(dumbo):
     key = pygame.key.get_pressed()
-    dumbo.move_left(key)
-    dumbo.move_right(key)
+    press_left_key(key, dumbo)
+    press_right_key(key, dumbo)
     press_space_key(key, dumbo)
 
 
@@ -187,7 +195,6 @@ def show_ending(screen, point):
     blit_font(font_s, "You`r final score : " + str(point), screen, [320, 150])
     blit_font(font_s, "AGAIN", screen, [200, 450])
     blit_font(font_s, "END", screen, [700, 450])
-    click_again()
 
 
 def blit_all(screen, ball, dumbo, bricks):
@@ -223,10 +230,11 @@ def main():
         blit_all(screen, ball, dumbo, bricks)
         pygame.display.flip()
 
+    show_ending(screen, bricks.broken_number)
+    pygame.display.flip()
     while not_click_end():
         terminate()
-        show_ending(screen, bricks.broken_number)
-        pygame.display.flip()
+        click_again()
 
 
 main()
