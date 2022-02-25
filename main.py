@@ -154,12 +154,12 @@ def press_space_key(key, dumbo):
 
 def press_left_key(key, dumbo):
     if key[pygame.K_LEFT]:
-        dumbo.move_left(key)
+        dumbo.move_left()
 
 
 def press_right_key(key, dumbo):
     if key[pygame.K_RIGHT]:
-        dumbo.move_right(key)
+        dumbo.move_right()
 
 
 def press_key_event(dumbo):
@@ -170,9 +170,9 @@ def press_key_event(dumbo):
 
 
 def click_again():
-    clicked = pygame.mouse.get_pressed()
+    clicked = pygame.event.get(pygame.MOUSEBUTTONDOWN)
     pos = pygame.mouse.get_pos()
-    if pygame.Rect.collidepoint(pygame.Rect(200, 450, 112, 34), pos) and clicked[0]:
+    if pygame.Rect.collidepoint(pygame.Rect(200, 450, 112, 34), pos) and clicked:
         main()
 
 
@@ -210,14 +210,7 @@ def terminate():
         quit()
 
 
-def main():
-    init()
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode([1000, 630])
-    ball = make_ball([8, 7], [500, 250])
-    dumbo = make_dumbo([500, 500])
-    bricks = Bricks()
-
+def play(ball, screen, clock, dumbo, bricks):
     while ball.is_visible(screen):
         terminate()
         screen.fill([255, 255, 255])
@@ -230,11 +223,25 @@ def main():
         blit_all(screen, ball, dumbo, bricks)
         pygame.display.flip()
 
+
+def do_again(screen, bricks):
     show_ending(screen, bricks.broken_number)
     pygame.display.flip()
     while not_click_end():
         terminate()
         click_again()
+
+
+def main():
+    init()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode([1000, 630])
+    ball = make_ball([8, 7], [500, 250])
+    dumbo = make_dumbo([500, 500])
+    bricks = Bricks()
+
+    play(ball, screen, clock, dumbo, bricks)
+    do_again(screen, bricks)
 
 
 main()
